@@ -1,6 +1,6 @@
 package main
 
-type Shape interface {
+type Shaper interface {
 	Area() float64
 	Perimeter() float64
 }
