@@ -1,8 +1,8 @@
 package utils
 
 import (
+	ce "main/customErrors"
 	"os"
-	ce "task_2/customErrors"
 )
 
 func CheckAPIKey(bankName, APIKey string) error {

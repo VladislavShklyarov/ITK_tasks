@@ -1,8 +1,8 @@
 package banks
 
 import (
-	ce "task_2/customErrors"
-	"task_2/utils"
+	ce "main/customErrors"
+	"main/utils"
 )
 
 func ConnectBank(bankName, APIKey string) (PaymentProcessor, error) {

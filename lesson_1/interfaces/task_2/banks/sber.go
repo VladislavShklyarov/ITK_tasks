@@ -2,8 +2,8 @@ package banks
 
 import (
 	"fmt"
+	ce "main/customErrors"
 	"math/rand"
-	ce "task_2/customErrors"
 )
 
 type Sberbank struct{}

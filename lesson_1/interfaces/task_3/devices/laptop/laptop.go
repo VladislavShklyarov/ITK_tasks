@@ -2,7 +2,7 @@ package laptop
 
 import (
 	"fmt"
-	ce "task_3/customErrors"
+	ce "main/customErrors"
 )
 
 type Laptop struct {

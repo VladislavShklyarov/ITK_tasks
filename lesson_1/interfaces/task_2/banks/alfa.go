@@ -2,8 +2,8 @@ package banks
 
 import (
 	"fmt"
+	ce "main/customErrors"
 	"math/rand"
-	ce "task_2/customErrors"
 )
 
 func (a *Alfabank) ProcessPayment(amount float64) error {

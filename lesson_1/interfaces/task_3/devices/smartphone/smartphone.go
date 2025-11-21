@@ -2,8 +2,8 @@ package smartphone
 
 import (
 	"fmt"
+	ce "main/customErrors"
 	"strconv"
-	ce "task_3/customErrors"
 )
 
 type Smartphone struct {

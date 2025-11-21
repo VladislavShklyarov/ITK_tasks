@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"github.com/joho/godotenv"
 	"log"
+	"main/banks"
 	"math/rand"
-	"task_2/banks"
 	"time"
 )
 
 func init() {
-	err := godotenv.Load("cfg/.env")
+	err := godotenv.Load("./cfg/.env")
 	if err != nil {
 		log.Fatal("Не удалось загрузить .env файл")
 	}

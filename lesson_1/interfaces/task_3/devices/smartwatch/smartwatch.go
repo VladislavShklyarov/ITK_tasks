@@ -2,7 +2,7 @@ package smartwatch
 
 import (
 	"fmt"
-	ce "task_3/customErrors"
+	ce "main/customErrors"
 	"unicode/utf8"
 )
 

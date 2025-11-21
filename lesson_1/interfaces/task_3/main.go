@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"task_3/devices/laptop"
-	"task_3/devices/smartphone"
-	watch "task_3/devices/smartwatch"
+	"main/devices/laptop"
+	"main/devices/smartphone"
+	watch "main/devices/smartwatch"
 )
 
 func main() {
