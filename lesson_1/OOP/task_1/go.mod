@@ -1,3 +1,3 @@
-module task_1
+module main
 
 go 1.24
