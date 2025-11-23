@@ -24,7 +24,6 @@ func RemoveOrdered[T any](s []T, i int) []T {
 	*/
 	s = append(s[:i], s[i+1:]...)
 
-	// или пройтись в цикле и переложить элементы за исключением нужного в другой слайс
 	return s
 }
 
@@ -70,45 +69,130 @@ func RemoveAllByValue[T comparable](s []T, value T, ordered bool) []T {
 }
 
 // RemoveDuplicates оставляет только уникальные элементы (сохраняет порядок).
-func RemoveDuplicates[T comparable](s []T) []T {
+func RemoveDuplicates[T comparable](s []T, addNewSlice bool) []T {
 	// для этого нужно создать мапу уникальности. затем сравнивать элементы из списка с мапой и
 	// и добавлять в слайс
-
 	seen := make(map[T]struct{})
-	result := make([]T, 0, len(s))
+
+	if addNewSlice {
+		result := make([]T, 0, len(s))
+		for _, el := range s {
+			if _, ok := seen[el]; !ok {
+				result = append(result, el)
+				seen[el] = struct{}{}
+			}
+		}
+		return result
+	}
+
+	writeIndex := 0
+	// Либо, если нужно вернуть тот же массив,
+	// можно использовать паттерн "указатель" для перезаписи элементов
+
 	for _, el := range s {
 		if _, ok := seen[el]; !ok {
-			result = append(result, el)
 			seen[el] = struct{}{}
+			s[writeIndex] = el
+			writeIndex++
 		}
 	}
-	return result
-
+	return s[:writeIndex]
 }
 
 // RemoveIf удаляет элементы, удовлетворяющие условию predicate.
-func RemoveIf[T any](s []T, predicate func(T) bool) []T {
-	// также можно проверить в цикле удовлетворение условию и сложить в новый слайс
-	return s
+func RemoveIf[T any](s []T, predicate func(T) bool, addNewSlice bool) []T {
+	//  можно проверить в цикле удовлетворение условию и сложить в новый слайс
+	if addNewSlice {
+		result := make([]T, 0, len(s))
+		for _, el := range s {
+			if !predicate(el) {
+				result = append(result, el)
+			}
+		}
+		return result
+	}
+	// либо как и в предыдущем использовать указатель для перезаписи
+	writeIndex := 0
+	for _, el := range s {
+		if !predicate(el) {
+			s[writeIndex] = el
+			writeIndex++
+		}
+	}
+	return s[:writeIndex]
 }
 
 // RemoveOrderedWithNil удаляет элемент по индексу (для слайса указателей),
 // обнуляя удаляемый элемент для предотвращения утечек памяти.
 func RemoveOrderedWithNil[T any](s []*T, i int) []*T {
-	//реализовать
+	//если правильно понял, то нам нужно просто сделать указатель = nil, а в остальном по классике
+
+	s[i] = nil
+	s = append(s[:i], s[i+1:]...)
 	return s
 }
 
 // ShrinkCapacity сокращает вместимость слайса, если она превышает
 // удвоенную длину после удаления элементов.
 func ShrinkCapacity[T any](s []T) []T {
-	//реализовать
+	// можно решить копированием в слайс со строго заданными размерами
+	if cap(s) > len(s)*2 {
+		newSlice := make([]T, len(s))
+		copy(newSlice, s)
+		return newSlice
+	}
+
 	return s
 }
 
 func main() {
-	s := []int{4, 2, 3, 3, 2, 1, 4, 5, 1, 4}
-	s = RemoveDuplicates(s)
+	a := []int{10, 20, 30, 40, 50}
+	a = RemoveUnordered(a, 1)
 
-	fmt.Println(s)
+	fmt.Println(a)
+
+	b := []int{10, 20, 30, 40}
+	b = RemoveOrdered(b, 2) // удаляем 30
+
+	fmt.Println(b)
+
+	c := []int{1, 2, 1, 3, 1, 4, 1}
+
+	// Удаление с сохранением порядка
+	result1 := RemoveAllByValue(c, 1, true)
+	fmt.Println(result1)
+
+	// Удаление без сохранения порядка
+	result2 := RemoveAllByValue(c, 1, false)
+	fmt.Println(result2)
+
+	d := []int{5, 5, 3, 5, 2, 3, 2, 1}
+
+	// Создаём новый слайс
+	r1 := RemoveDuplicates(d, true)
+	fmt.Println(r1)
+
+	// Удаляем "на месте"
+	r2 := RemoveDuplicates(d, false)
+	fmt.Println(r2)
+
+	e := []int{1, 2, 3, 4, 5, 6}
+
+	// Удаляем чётные
+	res1 := RemoveIf(e, func(x int) bool {
+		return x%2 == 0
+	}, true)
+	fmt.Println(res1)
+
+	f, g, h := 10, 20, 30
+	pointers := []*int{&f, &g, &h}
+
+	pointers = RemoveOrderedWithNil(pointers, 1) // удаляем b
+	fmt.Println(len(pointers))
+	fmt.Println(pointers)
+
+	bigCap := make([]int, 5, 200)
+
+	bigCap = ShrinkCapacity(bigCap)
+	fmt.Println(len(bigCap), cap(bigCap))
 }
