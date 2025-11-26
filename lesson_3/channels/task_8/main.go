@@ -1,75 +1,40 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func main() {
+	sourceCh := FillIn()
+	parsedCh := Parse(sourceCh)
 
-	s1 := NewServer(1)
-	s2 := NewServer(2)
-	s3 := NewServer(3)
+	s1 := NewServer("alpha")
+	s2 := NewServer("beta")
+	s3 := NewServer("delta")
 
-	servers := []*Server{s1, s2, s3}
+	ss := []*Server{s1, s2, s3}
 
-	dataCh := FillIn()
+	client := NewClient("client 1", ss)
 
-	parseCh := Parse(dataCh)
-	serversSplit := Split(parseCh, servers)
-	Send(serversSplit)
+	client.StartServers() // начинаем слушать каналы receivers
 
-	for i, server := range serversSplit {
-		fmt.Printf("Server %d:\n", i+1)
-		data := server.GetData()
-		if len(data) == 0 {
-			fmt.Println("  (пусто)")
-			continue
-		}
-		for _, info := range data {
-			fmt.Printf("  - %s\n", info)
-		}
+	client.SplitSend(parsedCh)
+
+	messagesCh := client.Receive()
+	fmt.Println("=== Первичная выгрузка сообщений ===")
+	for msg := range messagesCh {
+		fmt.Println(msg.id, "->", msg.body)
 	}
 
-}
+	client.BroadcastData(&Message{
+		id:   NewID(),
+		body: "Выгрузка завершена, всем спасибо",
+	})
 
-func Parse(in <-chan string) chan string {
+	anotherMessagesCh := client.Receive()
+	fmt.Println("=== Первичная выгрузка сообщений ===")
+	for msg := range anotherMessagesCh {
+		fmt.Println(msg.id, "->", msg.body)
 
-	out := make(chan string)
-	go func() {
-		for value := range in {
-			out <- "parsed - " + value
-		}
-		close(out)
-	}()
-
-	return out
-}
-
-func Split(in <-chan string, servers []*Server) []*Server {
-	rr := NewRoundRobin(servers)
-
-	for _, server := range servers {
-		server.Save() // запускаем горутину, которая читает и сохраняет данные
-	}
-
-	for data := range in {
-		server := rr.Next()
-		server.receiver <- data
-	}
-
-	//for _, server := range servers {
-	//	close(server.receiver)
-	//}
-
-	return servers
-}
-
-func Send(servers []*Server) {
-	for _, server := range servers {
-		server.Save() // запускаем горутину, которая читает и сохраняет данные
-		server.receiver <- "Данные записанные методом Send"
 	}
 }
-
-/* TODO: записи из мапы вернуть обратно в канал reciever (либо создать новый канал)
-Из этого канала мы получаем записи в Send, дополняем каждую из них и снова сохраняем
-
-*/

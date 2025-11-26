@@ -1,64 +1,76 @@
 package main
 
 import (
-	"sort"
 	"sync"
 )
 
 type Server struct {
-	id       int
-	receiver chan string
+	id       string
+	receiver chan *Message
+	exporter chan *Message
 	vault    *Vault
+	wg       sync.WaitGroup
+
+	commands chan Command
+}
+
+type Command struct {
+	cmdType string
 }
 
 type Vault struct {
-	internalVault map[string]struct{}
+	internalVault map[string]string
 	mu            sync.Mutex
 }
 
-func NewServer(id int) *Server {
+func NewServer(id string) *Server {
 	return &Server{
 		id:       id,
-		receiver: make(chan string),
+		receiver: make(chan *Message),
+		exporter: make(chan *Message),
 		vault: &Vault{
-			internalVault: make(map[string]struct{}),
-			mu:            sync.Mutex{},
+			internalVault: map[string]string{
+				"initial": "this is automatically created message",
+			},
+			mu: sync.Mutex{},
 		},
+		commands: make(chan Command),
 	}
 }
 
-//
-//type MultiError struct {
-//	msgs []string
-//}
-
-//func (m *MultiError) Error() string {
-//	return strings.Join(m.msgs, ";\n")
-//}
-
-// Горутина save аггрегирует значения из канала и сохраняет в in-memory хранилище.
-
+// Save Горутина save аггрегирует значения из канала и сохраняет в in-memory хранилище.
 func (s *Server) Save() {
+
 	go func() {
-		for data := range s.receiver {
-			s.vault.mu.Lock()
-			if _, ok := s.vault.internalVault[data]; !ok {
-				s.vault.internalVault[data] = struct{}{}
+		for {
+			select {
+			case msg := <-s.receiver:
+				if msg == nil { // канал может быть закрыт
+					return
+				}
+				s.vault.mu.Lock()
+				s.vault.internalVault[msg.id] = msg.body
+				s.vault.mu.Unlock()
+
+			case cmd := <-s.commands:
+				if cmd.cmdType == "export" {
+					s.exportOnce()
+				}
 			}
-			s.vault.mu.Unlock()
 		}
 	}()
+
 }
 
-func (s *Server) GetData() []string {
+func (s *Server) exportOnce() {
 	s.vault.mu.Lock()
-	defer s.vault.mu.Unlock()
 
-	data := make([]string, 0, len(s.vault.internalVault))
-	for key := range s.vault.internalVault {
-		data = append(data, key)
+	for key, value := range s.vault.internalVault {
+		message := &Message{
+			id:   key,
+			body: value,
+		}
+		s.exporter <- message
 	}
-
-	sort.Strings(data) // сортируем для красивого и предсказуемого вывода
-	return data
+	close(s.exporter)
 }
