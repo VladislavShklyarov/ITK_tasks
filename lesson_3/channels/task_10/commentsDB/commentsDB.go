@@ -9,27 +9,27 @@ type CommentsDB struct {
 }
 
 type Comment struct {
-	id   string
+	Id   string
 	Text []string
 }
 
 func ConnectCommentsDB() *CommentsDB {
 	comments := []*Comment{
 		{
-			id: "user_1",
+			Id: "user_1",
 			Text: []string{
 				"Не верь всему, что говорят в таверне… особенно, если это про тебя.",
 				"Музыка — лучшее оружие против скуки и уныния.",
 			},
 		},
 		{
-			id: "user_4",
+			Id: "user_4",
 			Text: []string{
 				"Не бывает слишком много магии… только недостаточно осторожности.",
 			},
 		},
 		{
-			id: "user_6",
+			Id: "user_6",
 			Text: []string{
 				"Зараза!",
 				"Если нужно выбирать между меньшим и большим злом...",
