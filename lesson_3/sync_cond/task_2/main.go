@@ -84,12 +84,12 @@ func (r *Restaurant) ReleaseTable() (any, bool) {
 	if len(r.tables) == 0 && r.closed {
 		return nil, false
 	}
-	task := r.tables[0]
+	table := r.tables[0]
 	r.tables = r.tables[1:]
 	r.cond.Signal()
 	r.cond.L.Unlock()
 	time.Sleep(500 * time.Millisecond) // имитируем что консьюмеру нужно время на обработку
-	return task, true
+	return table, true
 }
 
 func (r *Restaurant) Close() {
