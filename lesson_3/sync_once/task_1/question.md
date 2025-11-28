@@ -109,7 +109,8 @@ func (pg *PostgresSQLConnPoolSC) GetConnectionSC() *ConnectionSC {
 	}
 	return pg.conn
 }
-
+ 
+ 
 ```
 Интересный вывод дает `GetConenction` без `sync.Once()`
 
