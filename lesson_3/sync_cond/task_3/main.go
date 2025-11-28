@@ -2,27 +2,29 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"os/signal"
 	"task_3/redis"
+	"task_3/sqlite"
 	"time"
 )
 
 func main() {
 
-	//SQLitePool := sqlite.NewSQLiteConnectionPool(3) // Пул на 3 подключения
+	SQLitePool := sqlite.NewSQLiteConnectionPool(3) // Пул на 3 подключения
 
-	//for i := 0; i < 50; i++ {
-	//	go func() {
-	//		conn := SQLitePool.Get()
-	//		defer SQLitePool.Release(conn)
-	//
-	//		fmt.Printf("Горутина %d: SQLite подключение №%d получено\n", i, conn.ID)
-	//		workTime := time.Duration(rand.Intn(100)+50) * time.Millisecond
-	//		fmt.Printf("\tГорутина %d работала %v\n", i, workTime)
-	//		time.Sleep(workTime)
-	//	}()
-	//}
+	for i := 0; i < 50; i++ {
+		go func() {
+			conn := SQLitePool.Get()
+			defer SQLitePool.Release(conn)
+
+			fmt.Printf("Горутина %d: SQLite подключение №%d получено\n", i, conn.ID)
+			workTime := time.Duration(rand.Intn(100)+50) * time.Millisecond
+			fmt.Printf("\tГорутина %d работала %v\n", i, workTime)
+			time.Sleep(workTime)
+		}()
+	}
 
 	// Допустим сюда будут приходить мапы с id пользователей и каким-то кэшом.
 	input := FillIn("cash.json")
