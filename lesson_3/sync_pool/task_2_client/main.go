@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	url := "http://localhost:8080/Create"
+	url := "http://localhost:8080/CreatePool"
 
 	// JSON, который будем отправлять
 	payloads := []string{

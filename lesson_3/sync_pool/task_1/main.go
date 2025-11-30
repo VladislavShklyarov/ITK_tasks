@@ -13,7 +13,7 @@ func main() {
 		"lorem ipsum dolor sit amet",
 	}
 
-	pool := &syncPool.SyncPool{}
+	pool := syncPool.NewSyncPool()
 
 	for _, s := range examples {
 		processed := ProcessString(pool, s)
@@ -22,9 +22,9 @@ func main() {
 }
 
 func ProcessString(pool *syncPool.SyncPool, s string) string {
-	buf := syncPool.BuffersPool.Get().(*[]byte) // берем буфер из пула
-	*buf = append(*buf, strings.ToUpper(s)...)  // добавляем в него обработанную строку
-	result := string(*buf)                      // сохраняем в локальной переменной
+	buf := pool.GetBytes()                     // берем буфер из пула
+	*buf = append(*buf, strings.ToUpper(s)...) // добавляем в него обработанную строку
+	result := string(*buf)                     // сохраняем в локальной переменной
 
 	pool.PutBytes(buf) // возвращаем буфер обратно в пул
 	return result

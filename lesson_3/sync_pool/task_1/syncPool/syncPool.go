@@ -6,6 +6,10 @@ const Capacity int = 1024
 
 type SyncPool struct{}
 
+func NewSyncPool() *SyncPool {
+	return &SyncPool{}
+}
+
 var BuffersPool = &sync.Pool{
 	New: func() interface{} {
 		b := make([]byte, 0, Capacity) // поставим объем буффера в 1024 байта.

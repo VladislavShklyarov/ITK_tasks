@@ -4,28 +4,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync/atomic"
 	pg "task_2/PostgreSQL"
+	sp "task_2/syncPool"
 )
 
-type RequestData struct {
-	Data map[string]string `json:"data"`
-}
-
-// TODO: Добавить syncpool и описание
-func NewRequestData() *RequestData {
-	return &RequestData{
-		Data: make(map[string]string),
-	}
-}
-
-func HandleCreateData(postgres *pg.Postgres) http.HandlerFunc {
+func HandleCreateDataWithPool(postgres *pg.Postgres, pool *sp.SyncPool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "only POST-method allowed", http.StatusMethodNotAllowed)
 			return
 		}
 
-		req := NewRequestData()
+		req := pool.Get()
+		defer pool.Put(req)
 
 		err := json.NewDecoder(r.Body).Decode(&req.Data)
 		if err != nil {
@@ -39,6 +31,31 @@ func HandleCreateData(postgres *pg.Postgres) http.HandlerFunc {
 			postgres.Create(key, value)
 		}
 
+		fmt.Println("objects created:", atomic.LoadInt64(&sp.Created))
+	}
+}
+
+func HandleCreateDataNoPool(postgres *pg.Postgres) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "only POST-method allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		req := sp.NewRequestData()
+
+		err := json.NewDecoder(r.Body).Decode(&req.Data)
+		if err != nil {
+			http.Error(w, "invalid JSON "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		conn := postgres.GetConn()
+		defer postgres.Release(conn)
+		fmt.Printf("Processing request on connection %d...\n", conn.ID)
+		for key, value := range req.Data {
+			postgres.Create(key, value)
+		}
+		fmt.Println("objects created:", atomic.LoadInt64(&sp.Created))
 	}
 }
 
