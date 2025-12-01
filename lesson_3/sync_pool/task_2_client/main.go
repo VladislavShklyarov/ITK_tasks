@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -10,64 +11,78 @@ import (
 func main() {
 	url := "http://localhost:8080/CreatePool"
 
-	// JSON, который будем отправлять
-	payloads := []string{
-		`{"name":"Alice","age":"25"}`,
-		`{"name":"Bob","age":"30"}`,
-		`{"name":"Charlie","age":"22"}`,
-		`{"name":"Diana","age":"28"}`,
-		`{"name":"Eve","age":"35"}`,
-		`{"name":"Frank","age":"40"}`,
-		`{"name":"Grace","age":"27"}`,
-		`{"name":"Hank","age":"32"}`,
-		`{"name":"Ivy","age":"21"}`,
-		`{"name":"Jack","age":"29"}`,
-		`{"name":"Kevin","age":"33"}`,
-		`{"name":"Laura","age":"26"}`,
-		`{"name":"Mike","age":"31"}`,
-		`{"name":"Nina","age":"24"}`,
-		`{"name":"Oscar","age":"36"}`,
-		`{"name":"Paula","age":"29"}`,
-		`{"name":"Quinn","age":"23"}`,
-		`{"name":"Rachel","age":"34"}`,
-		`{"name":"Steve","age":"37"}`,
-		`{"name":"Tina","age":"25"}`,
-		`{"name":"Uma","age":"28"}`,
-		`{"name":"Victor","age":"32"}`,
-		`{"name":"Wendy","age":"27"}`,
-		`{"name":"Xander","age":"30"}`,
-		`{"name":"Yara","age":"22"}`,
-		`{"name":"Zane","age":"35"}`,
-		`{"name":"Abby","age":"24"}`,
-		`{"name":"Ben","age":"33"}`,
-		`{"name":"Clara","age":"26"}`,
-		`{"name":"David","age":"31"}`,
-		`{"name":"Ella","age":"29"}`,
-		`{"name":"Finn","age":"28"}`,
-		`{"name":"Gina","age":"27"}`,
-		`{"name":"Harry","age":"34"}`,
-		`{"name":"Isla","age":"23"}`,
-		`{"name":"Jake","age":"36"}`,
-		`{"name":"Kara","age":"25"}`,
-		`{"name":"Liam","age":"32"}`,
-		`{"name":"Mia","age":"22"}`,
-		`{"name":"Noah","age":"30"}`,
-		`{"name":"Olivia","age":"29"}`,
+	// Имя—возраст
+	people := map[string]string{
+		"Alice":   "25",
+		"Bob":     "30",
+		"Charlie": "22",
+		"Diana":   "28",
+		"Eve":     "35",
+		"Frank":   "40",
+		"Grace":   "27",
+		"Hank":    "32",
+		"Ivy":     "21",
+		"Jack":    "29",
+		"Kevin":   "33",
+		"Laura":   "26",
+		"Mike":    "31",
+		"Nina":    "24",
+		"Oscar":   "36",
+		"Paula":   "29",
+		"Quinn":   "23",
+		"Rachel":  "34",
+		"Steve":   "37",
+		"Tina":    "25",
+		"Uma":     "28",
+		"Victor":  "32",
+		"Wendy":   "27",
+		"Xander":  "30",
+		"Yara":    "22",
+		"Zane":    "35",
+		"Abby":    "24",
+		"Ben":     "33",
+		"Clara":   "26",
+		"David":   "31",
+		"Ella":    "29",
+		"Finn":    "28",
+		"Gina":    "27",
+		"Carlos":  "34",
+		"Isla":    "23",
+		"Jake":    "36",
+		"Kara":    "25",
+		"Liam":    "32",
+		"Mia":     "22",
+		"Noah":    "30",
+		"Olivia":  "29",
 	}
 
 	var wg sync.WaitGroup
-	for i, payload := range payloads {
+	i := 0
+
+	for name, age := range people {
 		wg.Add(1)
-		go func(i int, data string) {
+		go func(i int, name, age string) {
 			defer wg.Done()
-			resp, err := http.Post(url, "application/json", bytes.NewBuffer([]byte(data)))
+
+			// Формируем JSON: {"data": {"Имя": "Возраст"}}
+			body := map[string]map[string]string{
+				"data": {name: age},
+			}
+
+			jsonBytes, _ := json.Marshal(body)
+
+			resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonBytes))
 			if err != nil {
-				fmt.Printf("Request %d error: %v\n", i, err)
+				fmt.Printf("Request %d (%s) error: %v\n", i, name, err)
 				return
 			}
 			defer resp.Body.Close()
-			fmt.Printf("Request %d status: %s\n", i, resp.Status)
-		}(i, payload)
+
+			fmt.Printf("Request %d (%s) status: %s\n", i, name, resp.Status)
+
+		}(i, name, age)
+
+		i++
 	}
 
 	wg.Wait()
