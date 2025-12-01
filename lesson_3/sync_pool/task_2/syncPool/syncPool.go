@@ -26,7 +26,6 @@ func NewRequestData() *RequestData {
 var Created int64
 var requestDataPool = &sync.Pool{
 	New: func() interface{} {
-		atomic.AddInt64(&Created, 1)
 		return NewRequestData()
 	},
 }
