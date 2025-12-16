@@ -55,9 +55,8 @@ func DoBusinessLogic() error {
 			defer wg.Done()
 			processItem(item)
 		}()
-		wg.Wait()
-
 	}
+	wg.Wait()
 	return nil
 }
 

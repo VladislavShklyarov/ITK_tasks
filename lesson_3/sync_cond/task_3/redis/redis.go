@@ -35,7 +35,7 @@ func NewRedisPool(maxConnectionsAmount int) *Redis {
 			vault: make(map[string][]string),
 			mu:    sync.Mutex{},
 		},
-		maxConnAmount: 0,
+		maxConnAmount: maxConnectionsAmount,
 		connections:   make([]*c.Connection, 0, maxConnectionsAmount),
 		cond:          sync.NewCond(&sync.Mutex{}),
 	}
@@ -48,7 +48,6 @@ func NewRedisPool(maxConnectionsAmount int) *Redis {
 
 func (r *Redis) Get() *c.Connection {
 	r.cond.L.Lock()
-
 	for r.queueIsEmpty() {
 		r.cond.Wait()
 	}

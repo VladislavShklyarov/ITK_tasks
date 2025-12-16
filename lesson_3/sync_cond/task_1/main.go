@@ -89,6 +89,7 @@ func (bq *BoundQueue) Get() (any, bool) {
 	bq.queue = bq.queue[1:]
 	bq.cond.L.Unlock()
 	time.Sleep(500 * time.Millisecond) // имитируем что консьюмеру нужно время на обработку
+	bq.cond.Signal()
 	return task, true
 }
 

@@ -43,7 +43,7 @@ func (s *Smartphone) UpdateOS(version string) error {
 		return ce.ErrWrongMobileOSVersion
 	}
 
-	osVersion, _ := strconv.Atoi(s.OS.GetVersion())
+	osVersion, _ := strconv.Atoi(s.OS.GetVersion()) // лучше приводить к типу float
 	if osVersion >= 12.0 {
 		return ce.ErrUnsupported
 	}
